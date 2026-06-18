@@ -10,9 +10,9 @@ import streamlit as st
 import dw_pull
 
 
-st.set_page_config(page_title="Universal Credit Claimants from DWP Stat-Xplore API Pull", layout="wide")
+st.set_page_config(page_title="Universal Credit Households OA level from DWP Stat-Xplore API Pull", layout="wide")
 
-st.title("Universal Credit Claimants from DWP Stat-Xplore API Pull")
+st.title("Universal Credit Households OA level from DWP Stat-Xplore API Pull")
 st.markdown(
     """
 Pull Universal Credit household counts from **DWP Stat-Xplore** at **Output Area (OA)** level.
