@@ -1,0 +1,6 @@
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+uc_households_oa_by_lad/
+test_one_lad/
+*.csv
