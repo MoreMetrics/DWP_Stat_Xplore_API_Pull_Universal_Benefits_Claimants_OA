@@ -1,0 +1,19 @@
+{
+  "database" : "str:database:UC_Households",
+  "measures" : [ "str:count:UC_Households:V_F_UC_HOUSEHOLDS" ],
+  "recodes" : {
+    "str:field:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE" : {
+      "map" : [ [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE:V_C_MASTERGEOG21_COA_TO_LSOA:E00060274" ], [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE:V_C_MASTERGEOG21_COA_TO_LSOA:E00060275" ], [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE:V_C_MASTERGEOG21_COA_TO_LSOA:E00060276" ], [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE:V_C_MASTERGEOG21_COA_TO_LSOA:E00060277" ], [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE:V_C_MASTERGEOG21_COA_TO_LSOA:E00060279" ], [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE:V_C_MASTERGEOG21_COA_TO_LSOA:E00060280" ], [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE:V_C_MASTERGEOG21_COA_TO_LSOA:E00060290" ] ],
+      "total" : true
+    },
+    "str:field:UC_Households:F_UC_HH_DATE:DATE_NAME" : {
+      "map" : [ [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202502" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202503" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202504" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202505" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202506" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202507" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202508" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202509" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202510" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202511" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202512" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202601" ], [ "str:value:UC_Households:F_UC_HH_DATE:DATE_NAME:C_UC_HH_DATE:202602" ] ],
+      "total" : false
+    },
+    "str:field:UC_Households:V_F_UC_HOUSEHOLDS:HCPAYMENT" : {
+      "map" : [ [ "str:value:UC_Households:V_F_UC_HOUSEHOLDS:HCPAYMENT:C_UC_PAYMENT:1" ] ],
+      "total" : false
+    }
+  },
+  "dimensions" : [ [ "str:field:UC_Households:V_F_UC_HOUSEHOLDS:COA_CODE" ], [ "str:field:UC_Households:F_UC_HH_DATE:DATE_NAME" ], [ "str:field:UC_Households:V_F_UC_HOUSEHOLDS:HCPAYMENT" ] ]
+}
