@@ -19,14 +19,16 @@ Pull Universal Credit household counts from **DWP Stat-Xplore** at **Output Area
 
 This app builds the Stat-Xplore API query directly in Python and returns one row per OA for the selected month.
 
-There are two main requirements for this app:
+There are **two main requirements** for this app:
 
 1. Latest API key from the Stat-Xplore account, instructions in `universal_credit_oa_read_me`.
 
-2. Output Area to Local Authority District Lookup file named **oa_lad_small**. 
-   If you want to use an updated version, instructions in `universal_credit_oa_read_me`.
+2. Output Area to Local Authority District Lookup file named **oa_lad_small.csv**. 
+   If you want to use an updated OA/LAD lookup version, instructions in `universal_credit_oa_read_me`.
 
 And that it! Just **RUN** the app.
+
+The columns should run with default settings.
 
 **Date format**
 
@@ -37,9 +39,6 @@ For example:
 - February 2026 = `202602`
 - March 2026 = `202603`
 
-**Lookup file**
-
-Use `oa_lad_small.csv` for the OA/LAD lookup. If you need the latest lookup, follow the instructions in `universal_credit_oa_read_me`.
 """
 )
 
