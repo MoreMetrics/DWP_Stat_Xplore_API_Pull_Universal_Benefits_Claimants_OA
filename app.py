@@ -26,7 +26,12 @@ There are **two main requirements** for this app:
 2. Output Area to Local Authority District Lookup file named **oa_lad_small.csv**. 
    If you want to use an updated OA/LAD lookup version, instructions in `universal_credit_oa_read_me`.
 
-And that it! Just **RUN** the app.
+And that's it! Just **RUN** the app.
+
+**Notes:**
+
+You should receive two outputs, the raw file and a cleaned version.
+The app should run for around 10 minutes.
 
 The columns should run with default settings.
 
@@ -169,15 +174,62 @@ if run_button:
             st.error("The script finished, but the combined CSV was not created.")
             st.stop()
 
-        csv_bytes = combined_csv.read_bytes()
-        df = pd.read_csv(combined_csv)
+        # Read raw output from dw_pull.py
+        raw_csv_bytes = combined_csv.read_bytes()
+        raw_df = pd.read_csv(combined_csv)
 
-        st.success(f"Done. Created {len(df):,} rows.")
-        st.dataframe(df.head(200), use_container_width=True)
+        # Create clean version
+        columns_to_remove = [
+            "coa_code_uri",
+            "date_code",
+            "date_name_uri",
+            "hcpayment_label",
+            "hcpayment_code",
+            "hcpayment_uri",
+            "measure_uri",
+            "lad_name",
+            "source_lad_code",
+            "source_lad_name",
+            "chunk_no",
+        ]
 
-        st.download_button(
-            "Download combined CSV",
-            data=csv_bytes,
-            file_name="uc_households_oa_all_lads.csv",
-            mime="text/csv",
+        clean_df = raw_df.copy()
+
+        clean_df = clean_df.drop(
+            columns=columns_to_remove,
+            errors="ignore",
         )
+
+        clean_df = clean_df.rename(
+            columns={
+                "value": "number_of_households_claiming_universal_credit"
+            }
+        )
+
+        clean_csv_bytes = clean_df.to_csv(index=False).encode("utf-8")
+
+        st.success(f"Done. Created {len(raw_df):,} rows.")
+        
+        tab_raw, tab_clean = st.tabs(["Raw output", "Clean output"])
+        
+        with tab_raw:
+            st.write("Raw output from the Stat-Xplore pull.")
+            st.dataframe(raw_df.head(200), use_container_width=True)
+        
+            st.download_button(
+                "Download raw CSV",
+                data=raw_csv_bytes,
+                file_name="uc_households_oa_all_lads_raw.csv",
+                mime="text/csv",
+            )
+        
+        with tab_clean:
+            st.write("Cleaned output with unused technical columns removed.")
+            st.dataframe(clean_df.head(200), use_container_width=True)
+        
+            st.download_button(
+                "Download clean CSV",
+                data=clean_csv_bytes,
+                file_name="uc_households_oa_all_lads_clean.csv",
+                mime="text/csv",
+            )
