@@ -568,36 +568,36 @@ def run(args: argparse.Namespace) -> None:
 
         la_frames = []
 
-        for chunk_no, oa_chunk in chunks(oa_codes, args.chunk_size):
-            completed_chunks += 1
+            for chunk_no, oa_chunk in chunks(oa_codes, args.chunk_size):
+              completed_chunks += 1
 
-            progress_text = (
-              f"Chunk {completed_chunks:,}/{total_chunks:,} "
-              f"({completed_chunks / total_chunks:.1%}) — "
-              f"{lad_code} — chunk {chunk_no}, {len(oa_chunk):,} OAs"
-            )
+              progress_text = (
+                  f"Chunk {completed_chunks:,}/{total_chunks:,} "
+                  f"({completed_chunks / total_chunks:.1%}) — "
+                  f"{lad_code} — chunk {chunk_no}, {len(oa_chunk):,} OAs"
+              )
 
-            print("  " + progress_text)
+              print("  " + progress_text)
 
-            if progress_callback:
-                progress_callback(
-                    completed_chunks=completed_chunks,
-                    total_chunks=total_chunks,
-                    lad_code=lad_code,
-                    lad_name=lad_name,
-                    chunk_no=chunk_no,
-                    oa_count=len(oa_chunk),
-                    text=progress_text,
-                  )
+              if progress_callback:
+                  progress_callback(
+                      completed_chunks=completed_chunks,
+                      total_chunks=total_chunks,
+                      lad_code=lad_code,
+                      lad_name=lad_name,
+                      chunk_no=chunk_no,
+                      oa_count=len(oa_chunk),
+                      text=progress_text,
+                    )
 
-            query = patch_query_for_oa_list(
+              query = patch_query_for_oa_list(
                 base_query=base_query,
                 oa_codes=oa_chunk,
                 include_total=args.include_oa_total,
-            )
+              )
 
-            response = call_statxplore(query=query, api_key=api_key)
-            out = flatten_statxplore_response(response)
+              response = call_statxplore(query=query, api_key=api_key)
+              out = flatten_statxplore_response(response)
 
             if "oa_code" not in out.columns:
                 raise ValueError(
