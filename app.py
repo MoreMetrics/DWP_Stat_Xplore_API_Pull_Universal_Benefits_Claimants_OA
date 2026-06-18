@@ -15,10 +15,10 @@ st.set_page_config(page_title="DWP Stat-Xplore OA Pull", layout="wide")
 st.title("DWP Stat-Xplore OA Pull")
 st.write(
     "Pull Universal Credit household counts from DWP Stat-Xplore at OA level. "
-    "This version builds the API query in Python. Date is usually for the 'latest' month." 
+    "This version builds the API query in Python. Date is usually for the 'latest' month."
     "But if you want a specific month, Feb 2026 would be equivalent to '202602'."
     "Instructions for the API key can be found in the benefits_oa_read_me"
-    "Use oa_lad_small for OA/LAD Lookup, if you want the latest lookup follow instructions in benefits_oa_read_me."
+    "Use oa_lad_small.csv for OA/LAD Lookup upload, if you want the latest lookup follow instructions in benefits_oa_read_me."
 )
 
 try:
