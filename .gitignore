@@ -4,3 +4,4 @@ __pycache__/
 uc_households_oa_by_lad/
 test_one_lad/
 *.csv
+streamlit_outputs
