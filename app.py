@@ -13,12 +13,25 @@ import dw_pull
 st.set_page_config(page_title="DWP Stat-Xplore OA Pull", layout="wide")
 
 st.title("DWP Stat-Xplore OA Pull")
-st.write(
-    "Pull Universal Credit household counts from DWP Stat-Xplore at OA level. "
-    "This version builds the API query in Python. Date is usually for the 'latest' month."
-    "But if you want a specific month, Feb 2026 would be equivalent to '202602'."
-    "Instructions for the API key can be found in the benefits_oa_read_me"
-    "Use oa_lad_small.csv for OA/LAD Lookup upload, if you want the latest lookup follow instructions in benefits_oa_read_me."
+st.markdown(
+    """
+Pull Universal Credit household counts from **DWP Stat-Xplore** at **Output Area (OA)** level.
+
+This app builds the Stat-Xplore API query directly in Python and returns one row per OA for the selected month.
+
+**Date format**
+
+Use `latest` to try the latest available month, or enter a specific month in `YYYYMM` format.
+
+For example:
+
+- February 2026 = `202602`
+- March 2026 = `202603`
+
+**Lookup file**
+
+Use `oa_lad_small.csv` for the OA/LAD lookup. If you need the latest lookup, follow the instructions in `benefits_oa_read_me`.
+"""
 )
 
 try:
