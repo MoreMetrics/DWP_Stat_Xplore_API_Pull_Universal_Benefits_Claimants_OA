@@ -9,6 +9,20 @@ import streamlit as st
 
 import dw_pull
 
+if "raw_csv_bytes" not in st.session_state:
+    st.session_state.raw_csv_bytes = None
+
+if "clean_csv_bytes" not in st.session_state:
+    st.session_state.clean_csv_bytes = None
+
+if "raw_preview" not in st.session_state:
+    st.session_state.raw_preview = None
+
+if "clean_preview" not in st.session_state:
+    st.session_state.clean_preview = None
+
+if "row_count" not in st.session_state:
+    st.session_state.row_count = 0
 
 st.set_page_config(page_title="Universal Credit Households OA level from DWP Stat-Xplore API Pull", layout="wide")
 
