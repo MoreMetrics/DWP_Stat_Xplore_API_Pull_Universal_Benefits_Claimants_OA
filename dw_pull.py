@@ -408,13 +408,6 @@ def find_cube_values(cube: Any) -> list[Any]:
 def flatten_statxplore_response(response: dict[str, Any]) -> pd.DataFrame:
     """
     Converts a Stat-Xplore table response into long-form rows.
-
-    Expected result columns include:
-      coa_code
-      date_code
-      hcpayment_code
-      measure
-      value
     """
 
     fields = response.get("fields", [])
@@ -549,6 +542,15 @@ def run(args: argparse.Namespace) -> None:
 
     if args.max_lads:
         lad_groups = lad_groups[: args.max_lads]
+    # Work out total number of API chunks for progress reporting.
+  
+    total_chunks = 0
+    for _, lad_df_for_count in lad_groups:
+    oa_count_for_lad = lad_df_for_count["oa_code"].dropna().nunique()
+    total_chunks += (oa_count_for_lad + args.chunk_size - 1) // args.chunk_size
+
+    completed_chunks = 0
+    progress_callback = getattr(args, "progress_callback", None)
 
     combined_path = args.output_dir / "uc_households_oa_all_lads.csv"
     if args.combined and combined_path.exists():
@@ -567,7 +569,26 @@ def run(args: argparse.Namespace) -> None:
         la_frames = []
 
         for chunk_no, oa_chunk in chunks(oa_codes, args.chunk_size):
-            print(f"  chunk {chunk_no}: {len(oa_chunk):,} OAs")
+            completed_chunks += 1
+
+            progress_text = (
+              f"Chunk {completed_chunks:,}/{total_chunks:,} "
+              f"({completed_chunks / total_chunks:.1%}) — "
+              f"{lad_code} — chunk {chunk_no}, {len(oa_chunk):,} OAs"
+            )
+
+            print("  " + progress_text)
+
+            if progress_callback:
+                progress_callback(
+                    completed_chunks=completed_chunks,
+                    total_chunks=total_chunks,
+                    lad_code=lad_code,
+                    lad_name=lad_name,
+                    chunk_no=chunk_no,
+                    oa_count=len(oa_chunk),
+                    text=progress_text,
+                  )
 
             query = patch_query_for_oa_list(
                 base_query=base_query,
