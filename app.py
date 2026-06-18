@@ -9,11 +9,31 @@ import streamlit as st
 
 import dw_pull
 
-if "raw_csv_bytes" not in st.session_state:
-    st.session_state.raw_csv_bytes = None
 
-if "clean_csv_bytes" not in st.session_state:
-    st.session_state.clean_csv_bytes = None
+# -------------------------------------------------------------------
+# Page config
+# -------------------------------------------------------------------
+
+st.set_page_config(
+    page_title="Universal Credit Households OA level from DWP Stat-Xplore API Pull",
+    layout="wide",
+)
+
+
+# -------------------------------------------------------------------
+# Stable output cache
+# -------------------------------------------------------------------
+
+OUTPUT_CACHE_DIR = Path(tempfile.gettempdir()) / "streamlit_outputs"
+OUTPUT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+RAW_OUTPUT_PATH = OUTPUT_CACHE_DIR / "uc_households_oa_all_lads_raw.csv"
+CLEAN_OUTPUT_PATH = OUTPUT_CACHE_DIR / "uc_households_oa_all_lads_clean.csv"
+
+
+# -------------------------------------------------------------------
+# Session state
+# -------------------------------------------------------------------
 
 if "raw_preview" not in st.session_state:
     st.session_state.raw_preview = None
@@ -24,32 +44,146 @@ if "clean_preview" not in st.session_state:
 if "row_count" not in st.session_state:
     st.session_state.row_count = 0
 
-st.set_page_config(page_title="Universal Credit Households OA level from DWP Stat-Xplore API Pull", layout="wide")
+
+# -------------------------------------------------------------------
+# Helper functions
+# -------------------------------------------------------------------
+
+def reset_outputs() -> None:
+    """Clear previous cached outputs before a new run."""
+    st.session_state.raw_preview = None
+    st.session_state.clean_preview = None
+    st.session_state.row_count = 0
+
+    for path in [RAW_OUTPUT_PATH, CLEAN_OUTPUT_PATH]:
+        if path.exists():
+            path.unlink()
+
+
+def count_csv_rows(path: Path) -> int:
+    """Count data rows in a CSV, excluding the header."""
+    with path.open("r", encoding="utf-8", errors="ignore") as f:
+        return max(sum(1 for _ in f) - 1, 0)
+
+
+def build_clean_output(raw_df: pd.DataFrame) -> pd.DataFrame:
+    """Create the cleaned output table from the raw API output."""
+
+    columns_to_remove = [
+        "coa_code_uri",
+        "date_code",
+        "date_name_uri",
+        "hcpayment_label",
+        "hcpayment_code",
+        "hcpayment_uri",
+        "measure_uri",
+        "lad_name",
+        "source_lad_code",
+        "source_lad_name",
+        "chunk_no",
+    ]
+
+    clean_df = raw_df.copy()
+
+    clean_df = clean_df.drop(
+        columns=columns_to_remove,
+        errors="ignore",
+    )
+
+    clean_df = clean_df.rename(
+        columns={
+            "value": "number_of_households_claiming_universal_credit"
+        }
+    )
+
+    return clean_df
+
+
+def render_outputs() -> None:
+    """Render output previews and download buttons if cached files exist."""
+
+    if not RAW_OUTPUT_PATH.exists() or not CLEAN_OUTPUT_PATH.exists():
+        return
+
+    if st.session_state.raw_preview is None:
+        st.session_state.raw_preview = pd.read_csv(RAW_OUTPUT_PATH, nrows=200)
+
+    if st.session_state.clean_preview is None:
+        st.session_state.clean_preview = pd.read_csv(CLEAN_OUTPUT_PATH, nrows=200)
+
+    if st.session_state.row_count == 0:
+        st.session_state.row_count = count_csv_rows(RAW_OUTPUT_PATH)
+
+    st.success(f"Done. Created {st.session_state.row_count:,} rows.")
+
+    tab_raw, tab_clean = st.tabs(["Raw output", "Clean output"])
+
+    with tab_raw:
+        st.write("Raw output from the Stat-Xplore pull.")
+
+        st.dataframe(
+            st.session_state.raw_preview,
+            use_container_width=True,
+        )
+
+        st.download_button(
+            "Download raw CSV",
+            data=RAW_OUTPUT_PATH.read_bytes(),
+            file_name="uc_households_oa_all_lads_raw.csv",
+            mime="text/csv",
+            key="download_raw_csv",
+            on_click="ignore",
+        )
+
+    with tab_clean:
+        st.write("Cleaned output with unused technical columns removed.")
+
+        st.dataframe(
+            st.session_state.clean_preview,
+            use_container_width=True,
+        )
+
+        st.download_button(
+            "Download clean CSV",
+            data=CLEAN_OUTPUT_PATH.read_bytes(),
+            file_name="uc_households_oa_all_lads_clean.csv",
+            mime="text/csv",
+            key="download_clean_csv",
+            on_click="ignore",
+        )
+
+
+# -------------------------------------------------------------------
+# Header / instructions
+# -------------------------------------------------------------------
 
 st.title("Universal Credit Households OA level from DWP Stat-Xplore API Pull")
+
 st.markdown(
     """
 Pull Universal Credit household counts from **DWP Stat-Xplore** at **Output Area (OA)** level.
 
 This app builds the Stat-Xplore API query directly in Python and returns one row per OA for the selected month.
 
-There are **two main requirements** for this app:
+### Requirements
 
-1. Latest API key from the Stat-Xplore account, instructions in `universal_credit_oa_read_me`.
+1. Latest API key from the Stat-Xplore account. Instructions are in `universal_credit_oa_read_me`.
 
-2. Output Area to Local Authority District Lookup file named **oa_lad_small.csv**. 
-   If you want to use an updated OA/LAD lookup version, instructions in `universal_credit_oa_read_me`.
+2. Output Area to Local Authority District lookup file named **`oa_lad_small.csv`**.  
+   If you want to use an updated OA/LAD lookup version, follow the instructions in `universal_credit_oa_read_me`.
 
-And that's it! Just **RUN** the app.
+### Notes
 
-**Notes:**
+You should receive two outputs:
 
-You should receive two outputs, the raw file and a cleaned version.
-The app should run for around 10 minutes.
+- **Raw file**
+- **Cleaned file**
 
-The columns should run with default settings.
+The app should run for around **10 minutes**.
 
-**Date format**
+The columns should run with the default settings.
+
+### Date format
 
 Use `latest` to try the latest available month, or enter a specific month in `YYYYMM` format.
 
@@ -57,9 +191,13 @@ For example:
 
 - February 2026 = `202602`
 - March 2026 = `202603`
-
 """
 )
+
+
+# -------------------------------------------------------------------
+# API key
+# -------------------------------------------------------------------
 
 try:
     api_key = st.secrets.get("STATXPLORE_API_KEY", "")
@@ -71,12 +209,23 @@ if api_key:
 else:
     api_key = st.text_input("Stat-Xplore API key", type="password")
 
+
+# -------------------------------------------------------------------
+# Date
+# -------------------------------------------------------------------
+
 st.subheader("Date")
+
 date_code = st.text_input(
     "Stat-Xplore month",
     value="latest",
     help="Use 'latest' to ask Stat-Xplore for the latest available month, or enter YYYYMM, e.g. 202602.",
 )
+
+
+# -------------------------------------------------------------------
+# OA/LAD lookup
+# -------------------------------------------------------------------
 
 st.subheader("OA/LAD lookup")
 
@@ -92,16 +241,40 @@ else:
         type=["csv"],
     )
 
+
+# -------------------------------------------------------------------
+# Column settings
+# -------------------------------------------------------------------
+
 with st.expander("Column settings", expanded=True):
     oa_col = st.text_input("OA column", value="oa21cd")
     lad_col = st.text_input("Local authority column", value="lad25cd")
     region_col = st.text_input("Region column", value="rgn25cd")
-    only_lad = st.text_input("Optional: run one LAD code first", value="", placeholder="E09000001")
-    chunk_size = st.number_input("Chunk size", min_value=50, max_value=5000, value=1000, step=50)
+
+    only_lad = st.text_input(
+        "Optional: run one LAD code first",
+        value="",
+        placeholder="E09000001",
+    )
+
+    chunk_size = st.number_input(
+        "Chunk size",
+        min_value=50,
+        max_value=5000,
+        value=1000,
+        step=50,
+    )
+
+
+# -------------------------------------------------------------------
+# Run pull
+# -------------------------------------------------------------------
 
 run_button = st.button("Run pull", type="primary")
 
 if run_button:
+    reset_outputs()
+
     if not api_key:
         st.error("Add your Stat-Xplore API key first.")
         st.stop()
@@ -154,10 +327,14 @@ if run_button:
             text,
         ):
             percent = completed_chunks / total_chunks if total_chunks else 0
+
             progress_bar.progress(percent, text=text)
+
             progress_text.write(
-                f"**Progress:** {completed_chunks:,}/{total_chunks:,} chunks ({percent:.1%})"
+                f"**Progress:** {completed_chunks:,}/{total_chunks:,} chunks "
+                f"({percent:.1%})"
             )
+
             recent_updates.append(
                 {
                     "chunk": f"{completed_chunks}/{total_chunks}",
@@ -167,6 +344,7 @@ if run_button:
                     "oa_count": oa_count,
                 }
             )
+
             progress_log.dataframe(
                 pd.DataFrame(recent_updates[-10:]),
                 use_container_width=True,
@@ -184,66 +362,25 @@ if run_button:
             st.stop()
 
         combined_csv = output_dir / "uc_households_oa_all_lads.csv"
+
         if not combined_csv.exists():
             st.error("The script finished, but the combined CSV was not created.")
             st.stop()
 
-        # Read raw output from dw_pull.py
-        raw_csv_bytes = combined_csv.read_bytes()
         raw_df = pd.read_csv(combined_csv)
+        clean_df = build_clean_output(raw_df)
 
-        # Create clean version
-        columns_to_remove = [
-            "coa_code_uri",
-            "date_code",
-            "date_name_uri",
-            "hcpayment_label",
-            "hcpayment_code",
-            "hcpayment_uri",
-            "measure_uri",
-            "lad_name",
-            "source_lad_code",
-            "source_lad_name",
-            "chunk_no",
-        ]
+        raw_df.to_csv(RAW_OUTPUT_PATH, index=False)
+        clean_df.to_csv(CLEAN_OUTPUT_PATH, index=False)
 
-        clean_df = raw_df.copy()
+        st.session_state.raw_preview = raw_df.head(200)
+        st.session_state.clean_preview = clean_df.head(200)
+        st.session_state.row_count = len(raw_df)
 
-        clean_df = clean_df.drop(
-            columns=columns_to_remove,
-            errors="ignore",
-        )
 
-        clean_df = clean_df.rename(
-            columns={
-                "value": "number_of_households_claiming_universal_credit"
-            }
-        )
+# -------------------------------------------------------------------
+# Output section
+# This survives Streamlit reruns because it reads from cached files.
+# -------------------------------------------------------------------
 
-        clean_csv_bytes = clean_df.to_csv(index=False).encode("utf-8")
-
-        st.success(f"Done. Created {len(raw_df):,} rows.")
-        
-        tab_raw, tab_clean = st.tabs(["Raw output", "Clean output"])
-        
-        with tab_raw:
-            st.write("Raw output from the Stat-Xplore pull.")
-            st.dataframe(raw_df.head(200), use_container_width=True)
-        
-            st.download_button(
-                "Download raw CSV",
-                data=raw_csv_bytes,
-                file_name="uc_households_oa_all_lads_raw.csv",
-                mime="text/csv",
-            )
-        
-        with tab_clean:
-            st.write("Cleaned output with unused technical columns removed.")
-            st.dataframe(clean_df.head(200), use_container_width=True)
-        
-            st.download_button(
-                "Download clean CSV",
-                data=clean_csv_bytes,
-                file_name="uc_households_oa_all_lads_clean.csv",
-                mime="text/csv",
-            )
+render_outputs()
