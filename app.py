@@ -102,8 +102,51 @@ if run_button:
         )
 
         try:
-            with st.spinner("Pulling data from Stat-Xplore..."):
-                dw_pull.run(args)
+            progress_bar = st.progress(0, text="Starting pull...")
+            progress_text = st.empty()
+            progress_log = st.empty()
+
+            recent_updates = []
+
+            def update_progress(
+                completed_chunks,
+                total_chunks,
+                lad_code,
+                lad_name,
+                chunk_no,
+                oa_count,
+                text,
+            ):
+                percent = completed_chunks / total_chunks if total_chunks else 0
+
+                progress_bar.progress(percent, text=text)
+                progress_text.write(
+                    f"**Progress:** {completed_chunks:,}/{total_chunks:,} chunks "
+                    f"({percent:.1%})"
+                )
+
+                recent_updates.append(
+                    {
+                        "chunk": f"{completed_chunks}/{total_chunks}",
+                        "percent": f"{percent:.1%}",
+                        "lad_code": lad_code,
+                        "lad_name": lad_name,
+                        "oa_count": oa_count,
+                    }
+                )
+
+                progress_log.dataframe(
+                    pd.DataFrame(recent_updates[-10:]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+            args.progress_callback = update_progress
+
+            dw_pull.run(args)
+
+            progress_bar.progress(1.0, text="Complete")
+            
         except Exception as e:
             st.error("The pull failed.")
             st.exception(e)
