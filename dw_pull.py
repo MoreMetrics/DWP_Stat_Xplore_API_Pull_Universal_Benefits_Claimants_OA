@@ -277,22 +277,41 @@ def _schema_get_children(item_id: str, api_key: str) -> list[dict[str, Any]]:
 def get_latest_date_uri_from_schema(api_key: str) -> str:
     """
     Ask Stat-Xplore for DATE_NAME values and return the latest YYYYMM date URI.
-    If Stat-Xplore changes the schema shape, use --date-code YYYYMM instead.
+
+    Stat-Xplore sometimes nests date values below one or more hierarchy/classification
+    nodes, so this searches recursively under DATE_FIELD rather than only checking
+    the first level of children.
     """
 
-    children = _schema_get_children(DATE_FIELD, api_key)
-
     date_uris: list[tuple[str, str]] = []
-    for child in children:
-        child_id = str(child.get("id", ""))
-        date_code = child_id.rsplit(":", 1)[-1]
+    seen: set[str] = set()
+
+    def visit(item_id: str, depth: int = 0) -> None:
+        if item_id in seen or depth > 6:
+            return
+        seen.add(item_id)
+
+        date_code = item_id.rsplit(":", 1)[-1]
         if re.fullmatch(r"\d{6}", date_code):
-            date_uris.append((date_code, child_id))
+            date_uris.append((date_code, item_id))
+            return
+
+        try:
+            children = _schema_get_children(item_id, api_key)
+        except Exception:
+            return
+
+        for child in children:
+            child_id = str(child.get("id", ""))
+            if child_id:
+                visit(child_id, depth + 1)
+
+    visit(DATE_FIELD)
 
     if not date_uris:
         raise ValueError(
             "Could not auto-detect the latest DATE_NAME from Stat-Xplore schema. "
-            "Run with --date-code YYYYMM instead, for example --date-code 202602."
+            "In the Streamlit month box, enter a YYYYMM value instead, for example 202602."
         )
 
     latest_date_code, latest_date_uri = max(date_uris, key=lambda x: x[0])
