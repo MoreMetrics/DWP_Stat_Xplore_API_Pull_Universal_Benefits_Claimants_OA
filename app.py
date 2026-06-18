@@ -10,14 +10,23 @@ import streamlit as st
 import dw_pull
 
 
-st.set_page_config(page_title="DWP Stat-Xplore OA Pull", layout="wide")
+st.set_page_config(page_title="Universal Credit Claimants from DWP Stat-Xplore API Pull", layout="wide")
 
-st.title("DWP Stat-Xplore OA Pull")
+st.title("Universal Credit Claimants from DWP Stat-Xplore API Pull")
 st.markdown(
     """
 Pull Universal Credit household counts from **DWP Stat-Xplore** at **Output Area (OA)** level.
 
 This app builds the Stat-Xplore API query directly in Python and returns one row per OA for the selected month.
+
+There are two main requirements for this app:
+
+1. Latest API key from the Stat-Xplore account, instructions in `universal_credit_oa_read_me`.
+
+2. Output Area to Local Authority District Lookup file named **oa_lad_small**. 
+   If you want to use an updated version, instructions in `universal_credit_oa_read_me`.
+
+And that it! Just **RUN** the app.
 
 **Date format**
 
@@ -30,7 +39,7 @@ For example:
 
 **Lookup file**
 
-Use `oa_lad_small.csv` for the OA/LAD lookup. If you need the latest lookup, follow the instructions in `benefits_oa_read_me`.
+Use `oa_lad_small.csv` for the OA/LAD lookup. If you need the latest lookup, follow the instructions in `universal_credit_oa_read_me`.
 """
 )
 
