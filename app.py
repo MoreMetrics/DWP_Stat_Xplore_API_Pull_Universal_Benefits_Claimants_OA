@@ -22,7 +22,7 @@ st.write(
 try:
     api_key = st.secrets.get("STATXPLORE_API_KEY", "")
 except Exception:
-    api_key = ""
+    api_key = st.secrets.get("STATXPLORE_API_KEY", "")
 
 if api_key:
     st.success("Using Stat-Xplore API key from Streamlit secrets.")
